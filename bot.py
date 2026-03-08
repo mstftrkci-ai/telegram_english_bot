@@ -1,49 +1,37 @@
 import os
-import requests
+import google.generativeai as genai
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 GEMINI_KEY = os.environ["GEMINI_KEY"]
 
-async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+genai.configure(api_key=GEMINI_KEY)
 
+model = genai.GenerativeModel("gemini-1.5-flash")
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
 
     prompt = f"""
 You are an English teacher.
 
-1. Talk with the user in English.
-2. Correct their sentence.
-3. Explain the mistake shortly.
-4. Teach one new English word.
+Correct the user's sentence.
+Explain the mistake.
+Teach 2 new English words.
 
 User sentence:
 {user_text}
 """
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_KEY}"
+    response = model.generate_content(prompt)
 
-    data = {
-        "contents":[{"parts":[{"text":prompt}]}]
-    }
-
-    r = requests.post(url, json=data)
-    result = r.json()
-
-    try:
-        reply = result["candidates"][0]["content"]["parts"][0]["text"]
-    except:
-        reply = "AI response error."
-
-    await update.message.reply_text(reply)
-
+    await update.message.reply_text(response.text)
 
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 print("Bot started...")
-
 app.run_polling()
 
