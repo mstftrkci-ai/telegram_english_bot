@@ -3,8 +3,8 @@ import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 
-BOT_TOKEN = os.environ["AAGDzXfVPuOeeTEQ37ZbHSjVzoKTUQjIHU4"]
-GEMINI_KEY = os.environ["AIzaSyAkWAGJh5TdhMLYnEan_6LrZv99899gEVw"]
+BOT_TOKEN = os.environ["BOT_TOKEN"]
+GEMINI_KEY = os.environ["GEMINI_KEY"]
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
@@ -38,4 +38,5 @@ app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
 print("Bot çalışıyor...")
+
 app.run_polling()
