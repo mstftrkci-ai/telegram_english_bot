@@ -1,12 +1,11 @@
 import os
 import requests
-from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+from telegram.ext import Updater, MessageHandler, Filters
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 GEMINI_KEY = os.environ["GEMINI_KEY"]
 
-async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def chat(update, context):
     user_text = update.message.text
 
     prompt = f"""
@@ -27,16 +26,22 @@ User sentence:
         "contents":[{"parts":[{"text":prompt}]}]
     }
 
-    response = requests.post(url, json=data)
-    result = response.json()
+    r = requests.post(url, json=data)
+    result = r.json()
 
-    reply = result["candidates"][0]["content"]["parts"][0]["text"]
+    try:
+        reply = result["candidates"][0]["content"]["parts"][0]["text"]
+    except:
+        reply = "AI response error."
 
-    await update.message.reply_text(reply)
+    update.message.reply_text(reply)
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+updater = Updater(BOT_TOKEN, use_context=True)
 
-print("Bot çalışıyor...")
+dp = updater.dispatcher
+dp.add_handler(MessageHandler(Filters.text & ~Filters.command, chat))
 
-app.run_polling()
+print("Bot started...")
+
+updater.start_polling()
+updater.idle()
