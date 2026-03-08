@@ -1,6 +1,6 @@
 import os
 import requests
-from telegram.ext import Updater, MessageHandler, Filters
+from telegram.ext import ApplicationBuilder, MessageHandler, filters
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 GEMINI_KEY = os.environ["GEMINI_KEY"]
@@ -35,13 +35,11 @@ User sentence:
         reply = "AI response error."
 
     update.message.reply_text(reply)
+app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-updater = Updater(BOT_TOKEN, use_context=True)
-
-dp = updater.dispatcher
-dp.add_handler(MessageHandler(Filters.text & ~Filters.command, chat))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
 print("Bot started...")
 
-updater.start_polling()
-updater.idle()
+app.run_polling()
+
